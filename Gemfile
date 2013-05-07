@@ -30,35 +30,35 @@ gem 'hoptoad_notifier', "~> 2.4"
 # Issue Trackers
 # ---------------------------------------
 # Lighthouse
-gem 'lighthouse-api'
+#gem 'lighthouse-api'
 # Redmine
-gem 'oruen_redmine_client', :require => 'redmine_client'
+#gem 'oruen_redmine_client', :require => 'redmine_client'
 # Pivotal Tracker
-gem 'pivotal-tracker'
+#gem 'pivotal-tracker'
 # Fogbugz
-gem 'ruby-fogbugz', :require => 'fogbugz'
+#gem 'ruby-fogbugz', :require => 'fogbugz'
 # Github Issues
 gem 'octokit', '~> 1.0.0'
 # Gitlab
-gem 'gitlab', :git => 'https://github.com/NARKOZ/gitlab.git'
+#gem 'gitlab', :git => 'git://github.com/NARKOZ/gitlab.git'
 
 # Bitbucket Issues
-gem 'bitbucket_rest_api'
+#gem 'bitbucket_rest_api'
 
 # Notification services
 # ---------------------------------------
 # Campfire
-gem 'campy'
+#gem 'campy'
 # Hipchat
-gem 'hipchat'
+#gem 'hipchat'
 # Google Talk
-gem 'xmpp4r', :require => ["xmpp4r", "xmpp4r/muc"]
+#gem 'xmpp4r', :require => ["xmpp4r", "xmpp4r/muc"]
 # Hoiio (SMS)
-gem 'hoi'
+#gem 'hoi'
 # Pushover (iOS Push notifications)
-gem 'rushover'
+#gem 'rushover'
 # Hubot
-gem 'httparty'
+#gem 'httparty'
 
 # Authentication
 # ---------------------------------------
@@ -91,6 +91,8 @@ group :development, :test do
   gem 'better_errors', :platform => :ruby_19
   gem 'binding_of_caller', :platform => :ruby_19
   gem 'meta_request', :platform => :ruby_19
+
+  gem 'deploy_bunny', :git => 'git@github.com:rebbix/deploy-bunny.git', :require => false
 end
 
 gem 'foreman', :group => :development
@@ -115,8 +117,9 @@ gem 'thin', :group => :development, :platform => :ruby
 # in production environments by default.
 group :assets do
   gem 'execjs'
-  gem 'therubyracer', :platform => :ruby  # C Ruby (MRI) or Rubinius, but NOT Windows
+  gem 'therubyracer', '0.10.2', :platform => :ruby  # C Ruby (MRI) or Rubinius, but NOT Windows
   gem 'uglifier',     '>= 1.0.3'
   gem 'underscore-rails'
   gem 'turbo-sprockets-rails3'
 end
+

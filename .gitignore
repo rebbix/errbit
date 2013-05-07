@@ -3,11 +3,10 @@ db/*.sqlite3
 log/*.log
 tmp/**/*
 tmp/*
-config/config.yml
-config/deploy.rb
-config/deploy
-config/mongoid.yml
 config/newrelic.yml
+config/options.yml
+config/servers.yml
+vendor/
 .rvmrc
 .idea
 *~

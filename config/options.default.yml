@@ -1,0 +1,9 @@
+env:
+  hostname: errors.aquatika.mobi
+  errbit_email_from: errbit@aquatika.mobi
+
+  app_binding_ip: '0.0.0.0'
+  app_binding_port: 5000
+
+  worker_processes_count: 3
+

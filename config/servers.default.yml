@@ -1,0 +1,9 @@
+bindings:
+  single_stg: "errbit.stg.aquatika.mobi"
+
+servers:
+  app: single_stg
+  web: single_stg
+  db: single_stg
+  cron: single_stg
+
