@@ -17,3 +17,11 @@
 - name: mongodb - install package
   sudo: true
   apt: pkg=mongodb-10gen
+
+- name: mongodb - generate config
+  sudo: true
+  template:
+    src=mongodb.conf.j2
+    dest=/etc/mongodb.conf
+    mode=0644
+  notify: restart mongodb
