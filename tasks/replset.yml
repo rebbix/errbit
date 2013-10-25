@@ -1,0 +1,8 @@
+- name: mongodb - check replica set status
+  command: /usr/bin/mongo --quiet --eval 'printjson(rs.status().startupStatus === 3)'
+  register: result
+  changed_when: false
+
+- name: mongodb - initiate replica set
+  command: /usr/bin/mongo --quiet --eval 'rs.initiate()'
+  when: result.stdout == 'true'
