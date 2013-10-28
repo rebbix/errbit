@@ -1,3 +1,9 @@
+- name: mongodb - flush handlers
+  meta: flush_handlers
+
+- name: mongodb - sleep
+  pause: seconds=10
+
 - name: mongodb - check replica set status
   command: /usr/bin/mongo --quiet --eval 'printjson(rs.status().startupStatus === 3)'
   register: result
