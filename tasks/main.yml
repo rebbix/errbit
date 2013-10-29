@@ -1,0 +1,21 @@
+- name: nginx - add PPA
+  sudo: true
+  apt_repository: repo=ppa:nginx/stable
+  register: result
+
+- name: nginx - apt-get update
+  sudo: true
+  apt: update_cache=yes
+  when: result.changed
+
+- name: nginx - install package
+  sudo: true
+  apt: pkg=nginx
+  notify: restart nginx
+
+- name: nginx - disable default site
+  sudo: true
+  file:
+    path=/etc/nginx/sites-enabled/default
+    state=absent
+  notify: restart nginx
