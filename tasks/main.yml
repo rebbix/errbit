@@ -1,0 +1,30 @@
+- name: mongodb - add APT key
+  sudo: true
+  apt_key: url=http://docs.mongodb.org/10gen-gpg-key.asc state=present
+
+- name: mongodb - add repository
+  sudo: true
+  apt_repository:
+    repo='deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen'
+    state=present
+  register: result
+
+- name: mongodb - apt-get update
+  sudo: true
+  apt: update_cache=yes
+  when: result.changed
+
+- name: mongodb - install package
+  sudo: true
+  apt: pkg=mongodb-10gen
+
+- name: mongodb - generate config
+  sudo: true
+  template:
+    src=mongodb.conf.j2
+    dest=/etc/mongodb.conf
+    mode=0644
+  notify: restart mongodb
+
+- include: replset.yml
+  when: '"replSet" in mongodb.config'
