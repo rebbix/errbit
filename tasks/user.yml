@@ -1,0 +1,11 @@
+- name: mongodb - flush handlers
+  meta: flush_handlers
+
+- name: mongodb - sleep
+  pause: seconds=15
+
+- name: mongodb - create user
+  mongodb_user:
+    user={{ mongodb.username }}
+    password={{ mongodb.password }}
+    database={{ mongodb.database }}

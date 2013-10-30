@@ -2,7 +2,7 @@
   meta: flush_handlers
 
 - name: mongodb - sleep
-  pause: seconds=10
+  pause: seconds=15
 
 - name: mongodb - check replica set status
   command: /usr/bin/mongo --quiet --eval 'printjson(rs.status().startupStatus === 3)'

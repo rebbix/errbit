@@ -26,5 +26,8 @@
     mode=0644
   notify: restart mongodb
 
+- include: user.yml
+  when: mongodb.username and mongodb.password and mongodb.database
+
 - include: replset.yml
   when: '"replSet" in mongodb.config'
