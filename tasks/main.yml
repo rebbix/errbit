@@ -27,4 +27,4 @@
   notify: restart mongodb
 
 - include: replset.yml
-  when: '"replSet" in mongodb.config'
+  when: mongodb.initiate_replica_set

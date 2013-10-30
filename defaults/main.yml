@@ -1,4 +1,5 @@
 mongodb:
+  initiate_replica_set: false
   config:
     dbpath: /var/lib/mongodb
     logpath: /var/log/mongodb/mongodb.log
