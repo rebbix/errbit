@@ -9,5 +9,5 @@
   when: result.stdout == 'true'
 
 - name: mongodb - wait for replica set to initiate
-  pause: seconds=10
+  pause: seconds=15
   when: rs_result.changed

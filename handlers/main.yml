@@ -1,3 +1,7 @@
 - name: restart mongodb
   sudo: true
   action: service name=mongodb state=restarted
+  notify: wait for mongodb
+
+- name: wait for mongodb
+  pause: seconds=30
