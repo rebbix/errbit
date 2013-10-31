@@ -18,6 +18,17 @@
   sudo: true
   apt: pkg=mongodb-10gen
 
+- name: mongodb - upload keyfile
+  sudo: true
+  copy:
+    src={{ mongodb.keyFile }}
+    dest=/etc/mongodb.keyfile
+    owner=mongodb
+    group=mongodb
+    mode=0600
+  when: '"keyFile" in mongodb'
+  notify: restart mongodb
+
 - name: mongodb - generate config
   sudo: true
   template:
@@ -26,8 +37,11 @@
     mode=0644
   notify: restart mongodb
 
-- include: user.yml
-  when: mongodb.username and mongodb.password and mongodb.database
+- name: mongodb - flush handlers
+  meta: flush_handlers
 
 - include: replset.yml
   when: '"replSet" in mongodb.config'
+
+- include: user.yml
+  when: mongodb.username and mongodb.password and mongodb.database
