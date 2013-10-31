@@ -41,7 +41,7 @@
   meta: flush_handlers
 
 - include: replset.yml
-  when: '"replSet" in mongodb.config'
+  when: mongodb.initiate_replica_set
 
 - include: user.yml
   when: mongodb.username and mongodb.password and mongodb.database
