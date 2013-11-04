@@ -26,7 +26,7 @@
     owner=mongodb
     group=mongodb
     mode=0600
-  when: '"keyFile" in mongodb'
+  when: mongodb.keyFile
   notify: restart mongodb
 
 - name: mongodb - generate config
