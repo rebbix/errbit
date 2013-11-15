@@ -4,4 +4,4 @@
   notify: wait for mongodb
 
 - name: wait for mongodb
-  pause: seconds=30
+  wait_for: port={{ mongodb.config.port | default(27017) }} delay=1
