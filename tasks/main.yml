@@ -1,3 +1,9 @@
+- name: install packages
+  sudo: true
+  apt: pkg={{ item }}
+  with_items:
+    - libssl-dev
+
 - name: git clone
   git: >
     repo={{ ruby_build.repo }}
