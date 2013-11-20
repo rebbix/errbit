@@ -1,0 +1,10 @@
+- name: git clone
+  git: >
+    repo={{ ruby_build.repo }}
+    dest=/tmp/ruby-build
+
+- name: install
+  sudo: true
+  command: >
+    /tmp/ruby-build/install.sh
+    creates=/usr/local/bin/ruby-build
