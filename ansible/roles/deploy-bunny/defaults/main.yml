@@ -1,0 +1,3 @@
+deploy_bunny:
+  user: deploy
+  group: deploy
