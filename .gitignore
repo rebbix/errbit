@@ -13,3 +13,4 @@ vendor/
 *.rbc
 .DS_Store
 *#
+*.sw[pion]

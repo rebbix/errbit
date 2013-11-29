@@ -1,0 +1,7 @@
+ruby_via_ruby_build:
+  version: 2.0.0-p195
+
+deploy_bunny:
+  user: deploy
+  group: deploy
+

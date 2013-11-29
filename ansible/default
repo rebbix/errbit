@@ -1,0 +1,10 @@
+[errbit]
+errors.belvilla.rebbix.com
+
+[all:vars]
+ansible_connection = ssh
+ansible_ssh_user = leisureadm
+
+[default:children]
+errbit
+

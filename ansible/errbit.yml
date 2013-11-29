@@ -1,0 +1,10 @@
+- hosts: errbit
+  roles:
+    - ruby-build
+    - ruby-via-ruby-build
+    - mongodb
+    - nginx
+    - deploy-bunny
+    - errbit
+
+

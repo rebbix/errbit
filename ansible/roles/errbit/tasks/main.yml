@@ -1,0 +1,15 @@
+- name: install packages
+  sudo: yes
+  apt: pkg={{ item }}
+  with_items:
+    - libxslt1-dev
+    - libxml2-dev
+
+- name: setup nginx config
+  sudo: true
+  template: >
+    src=errbit.conf.j2
+    dest=/etc/nginx/sites-enabled/errbit.conf
+    mode=0644
+  notify: restart nginx
+
