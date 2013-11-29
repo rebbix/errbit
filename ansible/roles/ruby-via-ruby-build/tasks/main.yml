@@ -1,0 +1,16 @@
+- name: install
+  sudo: true
+  command: >
+    ruby-build {{ ruby_via_ruby_build.version }} /usr/local
+    creates=/usr/local/bin/ruby
+
+- name: disable gem documentation
+  sudo: true
+  copy: >
+    content='gem: --no-document'
+    dest=/usr/local/etc/gemrc
+    mode=0644
+
+- name: install bundler
+  sudo: true
+  gem: name=bundler user_install=no state=present
