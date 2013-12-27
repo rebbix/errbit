@@ -1,12 +1,24 @@
+# Mongoid Configuration
+# =====================
+#
+# Copy this file to config/mongoid.yml and
+# modify it accordingly. This file will automatically
+# be copied to shared/config on the server when
+# `cap deploy:setup` is ran the first time. Be sure
+# to place production specific settings there
+
+# set these environment variables on your prod server
 <% uri = URI.parse(ENV['MONGODB_URL'] || 'mongo://localhost/errbit_development') %>
 <%= Rails.env %>:
-  host: <%= uri.host %>
-<% if uri.port %>
-  port: <%= uri.port %>
-<% end %>
-<% unless uri.user %>
-  username: <%= uri.user %>
-  password: <%= uri.password %>
-<% end %>
-  database: <%= uri.path.gsub(/^\//, '') %>
+  sessions:
+    default:
+      database: <%= ENV['MONGOID_DATABASE'] %>
+      hosts:
+        - '<%= uri.host %><% if uri.port %>:<%= uri.port %><% end %>'
+    <% unless uri.user %>
+      username: <%= uri.user %>
+      password: <%= uri.password %>
+    <% end %>
+  options:
+    identity_map_enabled: true
 
