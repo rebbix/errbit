@@ -7,8 +7,9 @@ require 'deploy_bunny'
 
 after 'deploy:finalize_update' do
   configuration.export_environment
-  errbit.symlink_configs
 end
+
+before 'deploy:assets:symlink', 'errbit:symlink_configs'
 
 before 'deploy:assets:precompile' do
   set :real_rake, fetch(:rake)
@@ -47,12 +48,10 @@ namespace :deploy do
 end
 
 namespace :errbit do
-
-  ## TODO: Make it get configs from some secret repo
-
   task :setup_configs do
     shared_configs = File.join(shared_path,'config')
     run "mkdir -p #{shared_configs}"
+    run "if [ ! -f #{shared_configs}/config.yml ]; then cp #{latest_release}/config/config.example.yml #{shared_configs}/config.yml; fi"
 
     # Generate unique secret token
     run %Q{if [ ! -f #{shared_configs}/secret_token.rb ]; then
@@ -65,7 +64,8 @@ namespace :errbit do
     errbit.setup_configs
     shared_configs = File.join(shared_path,'config')
     release_configs = File.join(release_path,'config')
-    run("ln -nfs #{shared_configs}/secret_token.rb #{release_configs}/initializers/secret_token.rb")
+    run("ln -nfs #{shared_configs}/config.yml #{release_configs}/config.yml")
+    run("ln -nfs #{shared_configs}/secret_token.rb #{release_configs}/initializers/__secret_token.rb")
   end
 end
 

@@ -9,7 +9,7 @@
 # You will need to restart the server after changing any settings.
 
 # The host of your errbit server
-host: errbit.example.com
+host: <%= ENV['HOSTNAME'] || 'errbit.dev' %>
 
 # The port for your errbit server.
 # Only set this if it isn't the default for the protocol (i.e.. 80 for HTTP, 443 for HTTPS)
@@ -24,7 +24,7 @@ enforce_ssl: false
 
 # The email address which email notifications
 # will be sent from.
-email_from: errbit@example.com
+email_from: <%= ENV['ERRBIT_EMAIL_FROM'] || 'no-replay@errbit.dev' %>
 
 # If you turn on this option, email_at_notices can be
 # configured on a per app basis, at the App edit page
@@ -65,20 +65,7 @@ display_internal_errors: true
 # Enable Gravatar.
 use_gravatar: true
 # Default Gravatar image, can be: mm, identicon, monsterid, wavatar, retro.
-gravatar_default: identicon
-
-# Setup your deploy options for capistrano.
-deployment:
-  hosts:
-    web: errbit.example.com
-    app: errbit.example.com
-    db: errbit.example.com
-  repository: http://github.com/errbit/errbit.git
-  branch: master
-  user: deploy
-  deploy_to: /var/www/apps/errbit
-  # setup path to unicorn pids folder (or deploy_to/shared/pids will be used)
-  # pids: /var/www/apps/errbit/shared/pids
+gravatar_default: monsterid
 
 # GitHub OAuth configuration
 # If you want to allow authentication via GitHub, you will need to register
@@ -89,14 +76,16 @@ deployment:
 # Callback URL: http://errbit.example.com/users/auth/github
 #
 # After you have registered your app, copy your Client ID and Secret key below.
-github_authentication: false
-github_client_id: 'GITHUB_CLIENT_ID'
-github_secret: 'GITHUB_SECRET'
+<% if ENV['GITHUB_SECRET'] %>
+github_authentication: true
+github_client_id: <%= ENV['GITHUB_CLIENT_ID'] %>
+github_secret: <%= ENV['GITHUB_SECRET'] %>
 # GitHub Permissions to request from user
 #   ['repo']        - Allow creating issues for public and private repos.
 #   ['public_repo'] - Only allow creating issues for public repos.
 #   []              - No permission to create issues on any repos.
 github_access_scope: ['repo']
+<% end %>
 
 # Configure SMTP settings. If you are running Errbit on Heroku,
 # sendgrid will be configured by default.
