@@ -76,8 +76,7 @@ gravatar_default: monsterid
 # Callback URL: http://errbit.example.com/users/auth/github
 #
 # After you have registered your app, copy your Client ID and Secret key below.
-<% if ENV['GITHUB_SECRET'] %>
-github_authentication: true
+github_authentication: <% if ENV['GITHUB_SECRET'] %>true<% else %>false<% end %>
 github_client_id: <%= ENV['GITHUB_CLIENT_ID'] %>
 github_secret: <%= ENV['GITHUB_SECRET'] %>
 # GitHub Permissions to request from user
@@ -85,7 +84,6 @@ github_secret: <%= ENV['GITHUB_SECRET'] %>
 #   ['public_repo'] - Only allow creating issues for public repos.
 #   []              - No permission to create issues on any repos.
 github_access_scope: ['repo']
-<% end %>
 
 # Configure SMTP settings. If you are running Errbit on Heroku,
 # sendgrid will be configured by default.
