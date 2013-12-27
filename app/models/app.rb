@@ -16,7 +16,12 @@ class App
   field :email_at_notices, :type => Array, :default => Errbit::Config.email_at_notices
 
   # Some legacy apps may have string as key instead of BSON::ObjectID
-  identity :type => String
+  # identity :type => String
+  field :_id,
+    type: String,
+    pre_processed: true,
+    default: ->{ Moped::BSON::ObjectId.new.to_s }
+
 
   embeds_many :watchers
   embeds_many :deploys
@@ -42,46 +47,17 @@ class App
   accepts_nested_attributes_for :notification_service, :allow_destroy => true,
     :reject_if => proc { |attrs| !NotificationService.subclasses.map(&:to_s).include?(attrs[:type].to_s) }
 
-  # Processes a new error report.
+  # Acceps a hash with the following attributes:
   #
-  # Accepts either XML or a hash with the following attributes:
+  # * <tt>:error_class</tt> - the class of error (required to create a new Problem)
+  # * <tt>:environment</tt> - the environment the source app was running in (required to create a new Problem)
+  # * <tt>:fingerprint</tt> - a unique value identifying the notice
   #
-  # * <tt>:error_class</tt> - the class of error
-  # * <tt>:message</tt> - the error message
-  # * <tt>:backtrace</tt> - an array of stack trace lines
-  #
-  # * <tt>:request</tt> - a hash of values describing the request
-  # * <tt>:server_environment</tt> - a hash of values describing the server environment
-  #
-  # * <tt>:api_key</tt> - the API key with which the error was reported
-  # * <tt>:notifier</tt> - information to identify the source of the error report
-  #
-  def self.report_error!(*args)
-    report = ErrorReport.new(*args)
-    report.generate_notice!
-  end
-
-
-  # Processes a new error report.
-  #
-  # Accepts a hash with the following attributes:
-  #
-  # * <tt>:error_class</tt> - the class of error
-  # * <tt>:message</tt> - the error message
-  # * <tt>:backtrace</tt> - an array of stack trace lines
-  #
-  # * <tt>:request</tt> - a hash of values describing the request
-  # * <tt>:server_environment</tt> - a hash of values describing the server environment
-  #
-  # * <tt>:notifier</tt> - information to identify the source of the error report
-  #
-  def report_error!(hash)
-    report = ErrorReport.new(hash.merge(:api_key => api_key))
-    report.generate_notice!
-  end
-
   def find_or_create_err!(attrs)
-    Err.where(:fingerprint => attrs[:fingerprint]).first || problems.create!.errs.create!(attrs)
+    Err.where(
+      :fingerprint => attrs[:fingerprint]
+    ).first ||
+      problems.create!(attrs.slice(:error_class, :environment)).errs.create!(attrs.slice(:fingerprint, :problem_id))
   end
 
   # Mongoid Bug: find(id) on association proxies returns an Enumerator
@@ -90,7 +66,7 @@ class App
   end
 
   def self.find_by_api_key!(key)
-    where(:api_key => key).first || raise(Mongoid::Errors::DocumentNotFound.new(self,key))
+    find_by(:api_key => key)
   end
 
   def last_deploy_at
@@ -192,6 +168,10 @@ class App
 
   def email_at_notices
     Errbit::Config.per_app_email_at_notices ? super : Errbit::Config.email_at_notices
+  end
+
+  def regenerate_api_key!
+    set(:api_key, SecureRandom.hex)
   end
 
   protected

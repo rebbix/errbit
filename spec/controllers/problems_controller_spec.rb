@@ -12,24 +12,12 @@ describe ProblemsController do
 
 
   describe "GET /problems" do
-    render_views
+    #render_views
     context 'when logged in as an admin' do
       before(:each) do
         @user = Fabricate(:admin)
         sign_in @user
         @problem = Fabricate(:notice, :err => Fabricate(:err, :problem => Fabricate(:problem, :app => app, :environment => "production"))).problem
-      end
-
-      it "should successfully list problems" do
-        get :index
-        response.should be_success
-        response.body.gsub("&#8203;", "").should match(@problem.message)
-      end
-
-      it "should list atom feed successfully" do
-        get :index, :format => "atom"
-        response.should be_success
-        response.body.should match(@problem.message)
       end
 
       context "pagination" do
@@ -39,13 +27,13 @@ describe ProblemsController do
 
         it "should have default per_page value for user" do
           get :index
-          assigns(:problems).to_a.size.should == User::PER_PAGE
+          expect(controller.problems.to_a.size).to eq User::PER_PAGE
         end
 
         it "should be able to override default per_page value" do
           @user.update_attribute :per_page, 10
           get :index
-          assigns(:problems).to_a.size.should == 10
+          expect(controller.problems.to_a.size).to eq 10
         end
       end
 
@@ -60,35 +48,35 @@ describe ProblemsController do
         context 'no params' do
           it 'shows problems for all environments' do
             get :index
-            assigns(:problems).size.should == 21
+            expect(controller.problems.size).to eq 21
           end
         end
 
         context 'environment production' do
           it 'shows problems for just production' do
             get :index, :environment => 'production'
-            assigns(:problems).size.should == 6
+            expect(controller.problems.size).to eq 6
           end
         end
 
         context 'environment staging' do
           it 'shows problems for just staging' do
             get :index, :environment => 'staging'
-            assigns(:problems).size.should == 5
+            expect(controller.problems.size).to eq 5
           end
         end
 
         context 'environment development' do
           it 'shows problems for just development' do
             get :index, :environment => 'development'
-            assigns(:problems).size.should == 5
+            expect(controller.problems.size).to eq 5
           end
         end
 
         context 'environment test' do
           it 'shows problems for just test' do
             get :index, :environment => 'test'
-            assigns(:problems).size.should == 5
+            expect(controller.problems.size).to eq 5
           end
         end
       end
@@ -101,8 +89,8 @@ describe ProblemsController do
         watched_unresolved_err = Fabricate(:err, :problem => Fabricate(:problem, :app => Fabricate(:user_watcher, :user => user).app, :resolved => false))
         watched_resolved_err = Fabricate(:err, :problem => Fabricate(:problem, :app => Fabricate(:user_watcher, :user => user).app, :resolved => true))
         get :index
-        assigns(:problems).should include(watched_unresolved_err.problem)
-        assigns(:problems).should_not include(unwatched_err.problem, watched_resolved_err.problem)
+        expect(controller.problems).to include(watched_unresolved_err.problem)
+        expect(controller.problems).to_not include(unwatched_err.problem, watched_resolved_err.problem)
       end
     end
   end
@@ -114,11 +102,11 @@ describe ProblemsController do
         problems = Kaminari.paginate_array((1..30).to_a)
         3.times { problems << Fabricate(:err).problem }
         3.times { problems << Fabricate(:err, :problem => Fabricate(:problem, :resolved => true)).problem }
-        Problem.should_receive(:ordered_by).and_return(
-          mock('proxy', :page => mock('other_proxy', :per => problems))
+        expect(Problem).to receive(:ordered_by).and_return(
+          double('proxy', :page => double('other_proxy', :per => problems))
         )
         get :index, :all_errs => true
-        assigns(:problems).should == problems
+        expect(controller.problems).to eq problems
       end
     end
 
@@ -129,14 +117,14 @@ describe ProblemsController do
         watched_unresolved_problem = Fabricate(:problem, :app => Fabricate(:user_watcher, :user => user).app, :resolved => false)
         watched_resolved_problem = Fabricate(:problem, :app => Fabricate(:user_watcher, :user => user).app, :resolved => true)
         get :index, :all_errs => true
-        assigns(:problems).should include(watched_resolved_problem, watched_unresolved_problem)
-        assigns(:problems).should_not include(unwatched_problem)
+        expect(controller.problems).to include(watched_resolved_problem, watched_unresolved_problem)
+        expect(controller.problems).to_not include(unwatched_problem)
       end
     end
   end
 
   describe "GET /apps/:app_id/problems/:id" do
-    render_views
+    #render_views
 
     context 'when logged in as an admin' do
       before do
@@ -145,17 +133,17 @@ describe ProblemsController do
 
       it "finds the app" do
         get :show, :app_id => app.id, :id => err.problem.id
-        assigns(:app).should == app
+        expect(controller.app).to eq app
       end
 
       it "finds the problem" do
         get :show, :app_id => app.id, :id => err.problem.id
-        assigns(:problem).should == err.problem
+        expect(controller.problem).to eq err.problem
       end
 
       it "successfully render page" do
         get :show, :app_id => app.id, :id => err.problem.id
-        response.should be_success
+        expect(response).to be_success
       end
 
       context 'pagination' do
@@ -167,43 +155,17 @@ describe ProblemsController do
 
         it "paginates the notices 1 at a time, starting with the most recent" do
           get :show, :app_id => app.id, :id => err.problem.id
-          assigns(:notices).entries.count.should == 1
-          assigns(:notices).should include(notices.last)
+          expect(assigns(:notices).entries.count).to eq 1
+          expect(assigns(:notices)).to include(notices.last)
         end
 
         it "paginates the notices 1 at a time, based on then notice param" do
           get :show, :app_id => app.id, :id => err.problem.id, :notice => 3
-          assigns(:notices).entries.count.should == 1
-          assigns(:notices).should include(notices.first)
+          expect(assigns(:notices).entries.count).to eq 1
+          expect(assigns(:notices)).to include(notices.first)
         end
       end
 
-      context "create issue button" do
-        let(:button_matcher) { match(/create issue/) }
-
-        it "should not exist for problem's app without issue tracker" do
-          err = Fabricate :err
-          get :show, :app_id => err.app.id, :id => err.problem.id
-
-          response.body.should_not button_matcher
-        end
-
-        it "should exist for problem's app with issue tracker" do
-          tracker = Fabricate(:lighthouse_tracker)
-          err = Fabricate(:err, :problem => Fabricate(:problem, :app => tracker.app))
-          get :show, :app_id => err.app.id, :id => err.problem.id
-
-          response.body.should button_matcher
-        end
-
-        it "should not exist for problem with issue_link" do
-          tracker = Fabricate(:lighthouse_tracker)
-          err = Fabricate(:err, :problem => Fabricate(:problem, :app => tracker.app, :issue_link => "http://some.host"))
-          get :show, :app_id => err.app.id, :id => err.problem.id
-
-          response.body.should_not button_matcher
-        end
-      end
     end
 
     context 'when logged in as a user' do
@@ -217,13 +179,13 @@ describe ProblemsController do
 
       it 'finds the problem if the user is watching the app' do
         get :show, :app_id => @watched_app.to_param, :id => @watched_err.problem.id
-        assigns(:problem).should == @watched_err.problem
+        expect(controller.problem).to eq @watched_err.problem
       end
 
       it 'raises a DocumentNotFound error if the user is not watching the app' do
-        lambda {
+        expect {
           get :show, :app_id => @unwatched_err.problem.app_id, :id => @unwatched_err.problem.id
-        }.should raise_error(Mongoid::Errors::DocumentNotFound)
+        }.to raise_error(Mongoid::Errors::DocumentNotFound)
       end
     end
   end
@@ -233,43 +195,43 @@ describe ProblemsController do
       sign_in Fabricate(:admin)
 
       @problem = Fabricate(:err)
-      App.stub(:find).with(@problem.app.id).and_return(@problem.app)
+      App.stub(:find).with(@problem.app.id.to_s).and_return(@problem.app)
       @problem.app.problems.stub(:find).and_return(@problem.problem)
       @problem.problem.stub(:resolve!)
     end
 
     it 'finds the app and the problem' do
-      App.should_receive(:find).with(@problem.app.id).and_return(@problem.app)
-      @problem.app.problems.should_receive(:find).and_return(@problem.problem)
+      expect(App).to receive(:find).with(@problem.app.id.to_s).and_return(@problem.app)
+      expect(@problem.app.problems).to receive(:find).and_return(@problem.problem)
       put :resolve, :app_id => @problem.app.id, :id => @problem.problem.id
-      assigns(:app).should == @problem.app
-      assigns(:problem).should == @problem.problem
+      expect(controller.app).to eq @problem.app
+      expect(controller.problem).to eq @problem.problem
     end
 
     it "should resolve the issue" do
-      @problem.problem.should_receive(:resolve!).and_return(true)
+      expect(@problem.problem).to receive(:resolve!).and_return(true)
       put :resolve, :app_id => @problem.app.id, :id => @problem.problem.id
     end
 
     it "should display a message" do
       put :resolve, :app_id => @problem.app.id, :id => @problem.problem.id
-      request.flash[:success].should match(/Great news/)
+      expect(request.flash[:success]).to match(/Great news/)
     end
 
     it "should redirect to the app page" do
       put :resolve, :app_id => @problem.app.id, :id => @problem.problem.id
-      response.should redirect_to(app_path(@problem.app))
+      expect(response).to redirect_to(app_path(@problem.app))
     end
 
     it "should redirect back to problems page" do
       request.env["Referer"] = problems_path
       put :resolve, :app_id => @problem.app.id, :id => @problem.problem.id
-      response.should redirect_to(problems_path)
+      expect(response).to redirect_to(problems_path)
     end
   end
 
   describe "POST /apps/:app_id/problems/:id/create_issue" do
-    render_views
+    #render_views
 
     before(:each) do
       sign_in Fabricate(:admin)
@@ -293,7 +255,7 @@ describe ProblemsController do
         end
 
         it "should redirect to problem page" do
-          response.should redirect_to( app_problem_path(problem.app, problem) )
+          expect(response).to redirect_to( app_problem_path(problem.app, problem) )
         end
       end
     end
@@ -306,11 +268,11 @@ describe ProblemsController do
       end
 
       it "should redirect to problem page" do
-        response.should redirect_to( app_problem_path(problem.app, problem) )
+        expect(response).to redirect_to( app_problem_path(problem.app, problem) )
       end
 
       it "should set flash error message telling issue tracker of the app doesn't exist" do
-        flash[:error].should == "This app has no issue tracker setup."
+        expect(flash[:error]).to eq "This app has no issue tracker setup."
       end
     end
 
@@ -326,11 +288,11 @@ describe ProblemsController do
         end
 
         it "should redirect to problem page" do
-          response.should redirect_to( app_problem_path(err.app, err.problem) )
+          expect(response).to redirect_to( app_problem_path(err.app, err.problem) )
         end
 
         it "should notify of connection error" do
-          flash[:error].should include("There was an error during issue creation:")
+          expect(flash[:error]).to include("There was an error during issue creation:")
         end
       end
     end
@@ -350,11 +312,11 @@ describe ProblemsController do
       end
 
       it "should redirect to problem page" do
-        response.should redirect_to( app_problem_path(err.app, err.problem) )
+        expect(response).to redirect_to( app_problem_path(err.app, err.problem) )
       end
 
       it "should clear issue link" do
-        err.problem.issue_link.should be_nil
+        expect(err.problem.issue_link).to be_nil
       end
     end
 
@@ -367,7 +329,7 @@ describe ProblemsController do
       end
 
       it "should redirect to problem page" do
-        response.should redirect_to( app_problem_path(err.app, err.problem) )
+        expect(response).to redirect_to( app_problem_path(err.app, err.problem) )
       end
     end
   end
@@ -379,70 +341,78 @@ describe ProblemsController do
       @problem2 = Fabricate(:err, :problem => Fabricate(:problem, :resolved => false)).problem
     end
 
-    it "should apply to multiple problems" do
-      post :resolve_several, :problems => [@problem1.id.to_s, @problem2.id.to_s]
-      assigns(:selected_problems).should == [@problem1, @problem2]
-    end
-
-    it "should require at least one problem" do
-      post :resolve_several, :problems => []
-      request.flash[:notice].should match(/You have not selected any/)
-    end
-
     context "POST /problems/merge_several" do
       it "should require at least two problems" do
         post :merge_several, :problems => [@problem1.id.to_s]
-        request.flash[:notice].should match(/You must select at least two/)
+        expect(request.flash[:notice]).to eql I18n.t('controllers.problems.flash.need_two_errors_merge')
       end
 
       it "should merge the problems" do
-        lambda {
-          post :merge_several, :problems => [@problem1.id.to_s, @problem2.id.to_s]
-          assigns(:merged_problem).reload.errs.length.should == 2
-        }.should change(Problem, :count).by(-1)
+        expect(ProblemMerge).to receive(:new).and_return(double(:merge => true))
+        post :merge_several, :problems => [@problem1.id.to_s, @problem2.id.to_s]
       end
     end
 
     context "POST /problems/unmerge_several" do
+
+      it "should require at least one problem" do
+        post :unmerge_several, :problems => []
+        expect(request.flash[:notice]).to eql I18n.t('controllers.problems.flash.no_select_problem')
+      end
+
       it "should unmerge a merged problem" do
         merged_problem = Problem.merge!(@problem1, @problem2)
-        merged_problem.errs.length.should == 2
-        lambda {
+        expect(merged_problem.errs.length).to eq 2
+        expect{
           post :unmerge_several, :problems => [merged_problem.id.to_s]
-          merged_problem.reload.errs.length.should == 1
-        }.should change(Problem, :count).by(1)
+          expect(merged_problem.reload.errs.length).to eq 1
+        }.to change(Problem, :count).by(1)
       end
+
     end
 
     context "POST /problems/resolve_several" do
+
+      it "should require at least one problem" do
+        post :resolve_several, :problems => []
+        expect(request.flash[:notice]).to eql I18n.t('controllers.problems.flash.no_select_problem')
+      end
+
       it "should resolve the issue" do
         post :resolve_several, :problems => [@problem2.id.to_s]
-        @problem2.reload.resolved?.should == true
+        expect(@problem2.reload.resolved?).to eq true
       end
 
       it "should display a message about 1 err" do
         post :resolve_several, :problems => [@problem2.id.to_s]
-        flash[:success].should match(/1 err has been resolved/)
+        expect(flash[:success]).to match(/1 err has been resolved/)
       end
 
       it "should display a message about 2 errs" do
         post :resolve_several, :problems => [@problem1.id.to_s, @problem2.id.to_s]
-        flash[:success].should match(/2 errs have been resolved/)
+        expect(flash[:success]).to match(/2 errs have been resolved/)
+        expect(controller.selected_problems).to eq [@problem1, @problem2]
       end
     end
 
     context "POST /problems/unresolve_several" do
+
+      it "should require at least one problem" do
+        post :unresolve_several, :problems => []
+        expect(request.flash[:notice]).to eql I18n.t('controllers.problems.flash.no_select_problem')
+      end
+
       it "should unresolve the issue" do
         post :unresolve_several, :problems => [@problem1.id.to_s]
-        @problem1.reload.resolved?.should == false
+        expect(@problem1.reload.resolved?).to eq false
       end
     end
 
     context "POST /problems/destroy_several" do
       it "should delete the problems" do
-        lambda {
+        expect{
           post :destroy_several, :problems => [@problem1.id.to_s]
-        }.should change(Problem, :count).by(-1)
+        }.to change(Problem, :count).by(-1)
       end
     end
   end

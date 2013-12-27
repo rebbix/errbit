@@ -4,6 +4,7 @@ class IssueTracker
   include HashHelper
   include Rails.application.routes.url_helpers
   default_url_options[:host] = ActionMailer::Base.default_url_options[:host]
+  default_url_options[:port] = ActionMailer::Base.default_url_options[:port]
 
   embedded_in :app, :inverse_of => :issue_tracker
 
@@ -15,6 +16,15 @@ class IssueTracker
   field :password, :type => String
   field :ticket_properties, :type => String
   field :subdomain, :type => String
+  field :milestone_id, :type => String
+
+  # Is there any better way to enhance the props? Putting them into the subclass leads to
+  # an error while rendering the form fields -.-
+  field :base_url, :type => String
+  field :context_path, :type => String
+  field :issue_type, :type => String
+  field :issue_component, :type => String
+  field :issue_priority, :type => String
 
   validate :check_params
 
@@ -39,5 +49,15 @@ class IssueTracker
   def configured?
     project_id.present?
   end
-end
 
+  ##
+  # Update default_url_option with valid data from the request information
+  #
+  # @param [ Request ] a request with host, port and protocol
+  #
+  def self.update_url_options(request)
+    IssueTracker.default_url_options[:host] = request.host
+    IssueTracker.default_url_options[:port] = request.port
+    IssueTracker.default_url_options[:protocol] = request.scheme
+  end
+end

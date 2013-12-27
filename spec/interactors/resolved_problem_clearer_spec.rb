@@ -21,17 +21,20 @@ describe ResolvedProblemClearer do
         }
       end
       it 'not repair database' do
-        Mongoid.config.master.should_receive(:command).and_call_original
-        Mongoid.config.master.should_not_receive(:command).with({:repairDatabase => 1})
+        Mongoid.default_session.stub(:command).and_call_original
+        expect(Mongoid.default_session).to_not receive(:command).with({:repairDatabase => 1})
         resolved_problem_clearer.execute
       end
     end
 
     context "with problem resolve" do
       before do
+        Mongoid.default_session.stub(:command).and_call_original
+        Mongoid.default_session.stub(:command).with({:repairDatabase => 1})
         problems.first.resolve!
         problems.second.resolve!
       end
+
       it 'delete problem resolve' do
         expect {
           expect(resolved_problem_clearer.execute).to eq 2
@@ -43,8 +46,8 @@ describe ResolvedProblemClearer do
       end
 
       it 'repair database' do
-        Mongoid.config.master.should_receive(:command).and_call_original
-        Mongoid.config.master.should_receive(:command).with({:repairDatabase => 1})
+        Mongoid.default_session.stub(:command).and_call_original
+        expect(Mongoid.default_session).to receive(:command).with({:repairDatabase => 1})
         resolved_problem_clearer.execute
       end
     end

@@ -1,4 +1,3 @@
-require 'hoptoad'
 require 'recurse'
 
 class Notice
@@ -17,16 +16,13 @@ class Notice
 
   belongs_to :err
   belongs_to :backtrace, :index => true
-  index :created_at
-  index(
-    [
-      [ :err_id, Mongo::ASCENDING ],
-      [ :created_at, Mongo::ASCENDING ],
-      [ :_id, Mongo::ASCENDING ]
-    ]
-  )
 
-  after_create :increase_counter_cache, :cache_attributes_on_problem, :unresolve_problem
+  index(:created_at => 1)
+  index(:err_id => 1, :created_at => 1, :_id => 1)
+
+  after_create :cache_attributes_on_problem, :unresolve_problem
+  after_create :email_notification
+  after_create :services_notification
   before_save :sanitize
   before_destroy :decrease_counter_cache, :remove_cached_attributes_from_problem
 
@@ -114,11 +110,22 @@ class Notice
     app.notification_service.notify_at_notices.include?(0) || app.notification_service.notify_at_notices.include?(similar_count)
   end
 
-  protected
-
-  def increase_counter_cache
-    problem.inc(:notices_count, 1)
+  ##
+  # TODO: Move on decorator maybe
+  #
+  def project_root
+    if server_environment
+      server_environment['project-root'] || ''
+    end
   end
+
+  def app_version
+    if server_environment
+      server_environment['app-version'] || ''
+    end
+  end
+
+  protected
 
   def decrease_counter_cache
     problem.inc(:notices_count, -1) if err
@@ -133,7 +140,7 @@ class Notice
   end
 
   def cache_attributes_on_problem
-    problem.cache_notice_attributes(self)
+    ProblemUpdaterCache.new(problem, self).update
   end
 
   def sanitize
@@ -141,6 +148,7 @@ class Notice
       send("#{h}=",sanitize_hash(send(h)))
     end
   end
+
 
   def sanitize_hash(h)
     h.recurse do
@@ -153,6 +161,26 @@ class Notice
         h
       end
     end
+  end
+
+  private
+
+  ##
+  # Send email notification if needed
+  def email_notification
+    return true unless should_email?
+    Mailer.err_notification(self).deliver
+  rescue => e
+    HoptoadNotifier.notify(e)
+  end
+
+  ##
+  # Launch all notification define on the app associate to this notice
+  def services_notification
+    return true unless app.notification_service_configured? and should_notify?
+    app.notification_service.create_notification(problem)
+  rescue => e
+    HoptoadNotifier.notify(e)
   end
 
 end
