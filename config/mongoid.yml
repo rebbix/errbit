@@ -15,8 +15,10 @@
       database: <%= uri.path.gsub(/^\//, '') %>
       hosts:
         - '<%= uri.host %><% if uri.port %>:<%= uri.port %><% end %>'
+    <% if uri.user %>
       username: <%= uri.user %>
       password: <%= uri.password %>
+    <% end %>
   options:
     identity_map_enabled: true
 
